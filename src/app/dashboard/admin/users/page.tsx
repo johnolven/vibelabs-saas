@@ -8,7 +8,7 @@ interface User {
   id?: string;
   name: string;
   email: string;
-  role: 'admin' | 'user' | 'client';
+  role: 'founder' | 'admin' | 'investor' | 'boardmember' | 'potential_investor' | 'follower';
   createdAt: string;
   lastLogin?: string;
   status: 'active' | 'inactive' | 'pending';
@@ -25,7 +25,7 @@ export default function UsersManagement() {
   const [newUser, setNewUser] = useState<Partial<User>>({
     name: '',
     email: '',
-    role: 'user',
+    role: 'follower',
     status: 'active'
   });
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
@@ -49,15 +49,15 @@ export default function UsersManagement() {
       // Crear un timestamp para evitar completamente el caché
       const timestamp = new Date().getTime();
       
-      // Realizar petición a la API para obtener usuarios con prevención de caché
-      const response = await fetch(`/api/users?nocache=${timestamp}`, {
+      // Realizar petición a la API de admin para obtener usuarios
+      const response = await fetch(`/api/admin/users?nocache=${timestamp}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        cache: 'no-store' // Asegurar que no se use caché
+        cache: 'no-store'
       });
       
       if (!response.ok) {
@@ -97,12 +97,13 @@ export default function UsersManagement() {
           normalizedRole = normalizedRole.toLowerCase();
         } else {
           console.warn(`Tipo de rol inesperado para usuario ${user.name}: ${typeof normalizedRole}`);
-          normalizedRole = 'user';
+          normalizedRole = 'follower';
         }
         
-        if (!['admin', 'user', 'client'].includes(normalizedRole)) {
-          console.warn(`Rol no reconocido "${normalizedRole}" para usuario ${user.name}, usando 'user' como predeterminado`);
-          normalizedRole = 'user';
+        const validRoles = ['founder', 'admin', 'investor', 'boardmember', 'potential_investor', 'follower'];
+        if (!validRoles.includes(normalizedRole)) {
+          console.warn(`Rol no reconocido "${normalizedRole}" para usuario ${user.name}, usando 'follower' como predeterminado`);
+          normalizedRole = 'follower';
         }
         
         console.log(`Usuario ${user.name || user.email}: rol normalizado = "${normalizedRole}"`);
@@ -113,7 +114,7 @@ export default function UsersManagement() {
           _id: user._id,
           name: user.name,
           email: user.email,
-          role: normalizedRole as 'admin' | 'user' | 'client',
+          role: normalizedRole as 'founder' | 'admin' | 'investor' | 'boardmember' | 'potential_investor' | 'follower',
           createdAt: user.createdAt || new Date().toISOString(),
           updatedAt: user.updatedAt,
           status: user.status || 'active',
@@ -129,28 +130,6 @@ export default function UsersManagement() {
     } catch (error) {
       console.error('Error loading users:', error);
       setApiError(error instanceof Error ? error.message : 'Error desconocido al cargar usuarios');
-      
-      // Cargar datos de ejemplo como fallback
-      setUsers([
-        {
-          id: '1',
-          name: 'Admin Principal',
-          email: 'admin@example.com',
-          role: 'admin',
-          createdAt: '2023-01-15T10:30:00Z',
-          lastLogin: '2023-06-20T08:45:00Z',
-          status: 'active'
-        },
-        {
-          id: '2',
-          name: 'Usuario Regular',
-          email: 'usuario@example.com',
-          role: 'user',
-          createdAt: '2023-02-20T14:15:00Z',
-          lastLogin: '2023-06-18T16:30:00Z',
-          status: 'active'
-        }
-      ]);
     } finally {
       setIsLoading(false);
     }
@@ -206,8 +185,8 @@ export default function UsersManagement() {
         throw new Error('No hay token de autenticación');
       }
       
-      // Realizar petición a la API para crear usuario
-      const response = await fetch('/api/users', {
+      // Realizar petición a la API de admin para crear usuario
+      const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -237,7 +216,7 @@ export default function UsersManagement() {
       setNewUser({
         name: '',
         email: '',
-        role: 'user',
+        role: 'follower',
         status: 'active'
       });
       setFormErrors({});
@@ -283,11 +262,12 @@ export default function UsersManagement() {
         status: selectedUser.status
       };
       
-      // Realizar petición a la API para actualizar usuario
+      // Realizar petición a la API de admin para actualizar usuario
       const userId = selectedUser._id || selectedUser.id;
       console.log('Actualizando usuario con ID:', userId, 'Datos para actualizar:', updateData);
       
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -297,7 +277,10 @@ export default function UsersManagement() {
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({
+          id: userId,
+          ...updateData
+        })
       });
       
       if (!response.ok) {
@@ -342,12 +325,11 @@ export default function UsersManagement() {
           throw new Error('No hay token de autenticación');
         }
         
-        // Realizar petición a la API para eliminar usuario
-        const response = await fetch(`/api/users/${userId}`, {
+        // Realizar petición a la API de admin para eliminar usuario
+        const response = await fetch(`/api/admin/users?id=${userId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
-            // Añadir encabezados para evitar el caché
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
@@ -406,22 +388,20 @@ export default function UsersManagement() {
 
   // Renderizar badge de rol
   const renderRoleBadge = (role: string) => {
-    // Normalizar el rol para asegurar compatibilidad
     const normalizedRole = (role || '').toLowerCase();
     
-    console.log(`Renderizando insignia para rol: "${role}", normalizado a: "${normalizedRole}"`);
+    const roleConfig: Record<string, { label: string; className: string }> = {
+      founder: { label: 'Founder', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+      admin: { label: 'Admin', className: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
+      investor: { label: 'Investor', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+      boardmember: { label: 'Board Member', className: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+      potential_investor: { label: 'Potential Investor', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+      follower: { label: 'Follower', className: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' }
+    };
     
-    // Forzar comparación de strings para mayor seguridad
-    if (normalizedRole === 'admin') {
-      return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Administrador</span>;
-    } else if (normalizedRole === 'client') {
-      return <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">Cliente</span>;
-    } else if (normalizedRole === 'user' || normalizedRole === '') {
-      return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Usuario</span>;
-    } else {
-      console.warn(`Rol desconocido: "${role}"`);
-      return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">Usuario</span>;
-    }
+    const config = roleConfig[normalizedRole] || roleConfig.follower;
+    
+    return <span className={`px-2 py-1 rounded-full text-xs ${config.className}`}>{config.label}</span>;
   };
 
   return (
@@ -652,12 +632,15 @@ export default function UsersManagement() {
                 <label className="block text-sm font-medium mb-1">Rol</label>
                 <select
                   value={newUser.role?.toLowerCase()}
-                  onChange={e => setNewUser({...newUser, role: e.target.value as 'admin' | 'user' | 'client'})}
+                  onChange={e => setNewUser({...newUser, role: e.target.value as 'founder' | 'admin' | 'investor' | 'boardmember' | 'potential_investor' | 'follower'})}
                   className="w-full p-2 border rounded-lg"
                 >
-                  <option value="user">Usuario</option>
-                  <option value="admin">Administrador</option>
-                  <option value="client">Cliente</option>
+                  <option value="follower">Follower</option>
+                  <option value="potential_investor">Potential Investor</option>
+                  <option value="investor">Investor</option>
+                  <option value="boardmember">Board Member</option>
+                  <option value="admin">Admin</option>
+                  <option value="founder">Founder</option>
                 </select>
               </div>
               <div>
@@ -734,12 +717,15 @@ export default function UsersManagement() {
                 <label className="block text-sm font-medium mb-1">Rol</label>
                 <select
                   value={selectedUser.role.toLowerCase()}
-                  onChange={e => setSelectedUser({...selectedUser, role: e.target.value as 'admin' | 'user' | 'client'})}
+                  onChange={e => setSelectedUser({...selectedUser, role: e.target.value as 'founder' | 'admin' | 'investor' | 'boardmember' | 'potential_investor' | 'follower'})}
                   className="w-full p-2 border rounded-lg"
                 >
-                  <option value="user">Usuario</option>
-                  <option value="client">Cliente</option>
-                  <option value="admin">Administrador</option>
+                  <option value="follower">Follower</option>
+                  <option value="potential_investor">Potential Investor</option>
+                  <option value="investor">Investor</option>
+                  <option value="boardmember">Board Member</option>
+                  <option value="admin">Admin</option>
+                  <option value="founder">Founder</option>
                 </select>
               </div>
               <div>

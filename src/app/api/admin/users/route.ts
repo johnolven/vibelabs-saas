@@ -18,9 +18,9 @@ export async function GET(req: Request) {
     const userId = await verifyToken(token);
     await connectDB();
     
-    // Verificar si el usuario es administrador
+    // Verificar si el usuario es administrador o founder
     const adminUser = await User.findById(userId);
-    if (!adminUser || adminUser.role !== 'admin') {
+    if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'founder')) {
       return NextResponse.json(
         { error: 'Acceso denegado: Se requieren permisos de administrador' },
         { status: 403 }
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
       id: user._id.toString(),
       name: user.name,
       email: user.email,
-      role: user.role || 'user', // Default to 'user' if not specified
+      role: user.role || 'follower', // Default to 'follower' if not specified
       createdAt: user.createdAt.toISOString(),
       status: user.status || 'active', // Default to 'active' if not specified
       lastLogin: user.lastLogin ? user.lastLogin.toISOString() : undefined
@@ -68,9 +68,9 @@ export async function POST(req: Request) {
     const data = await req.json();
     await connectDB();
     
-    // Verificar si el usuario es administrador
+    // Verificar si el usuario es administrador o founder
     const adminUser = await User.findById(adminId);
-    if (!adminUser || adminUser.role !== 'admin') {
+    if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'founder')) {
       return NextResponse.json(
         { error: 'Acceso denegado: Se requieren permisos de administrador' },
         { status: 403 }
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
       id: newUser._id.toString(),
       name: newUser.name,
       email: newUser.email,
-      role: newUser.role || 'user',
+      role: newUser.role || 'follower',
       createdAt: newUser.createdAt.toISOString(),
       status: newUser.status || 'active'
     };
@@ -145,9 +145,9 @@ export async function PUT(req: Request) {
     const data = await req.json();
     await connectDB();
     
-    // Verificar si el usuario es administrador
+    // Verificar si el usuario es administrador o founder
     const adminUser = await User.findById(adminId);
-    if (!adminUser || adminUser.role !== 'admin') {
+    if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'founder')) {
       return NextResponse.json(
         { error: 'Acceso denegado: Se requieren permisos de administrador' },
         { status: 403 }
@@ -214,7 +214,7 @@ export async function PUT(req: Request) {
       id: updatedUser._id.toString(),
       name: updatedUser.name,
       email: updatedUser.email,
-      role: updatedUser.role || 'user',
+      role: updatedUser.role || 'follower',
       createdAt: updatedUser.createdAt.toISOString(),
       status: updatedUser.status || 'active',
       lastLogin: updatedUser.lastLogin ? updatedUser.lastLogin.toISOString() : undefined
@@ -255,9 +255,9 @@ export async function DELETE(req: Request) {
     const adminId = await verifyToken(token);
     await connectDB();
     
-    // Verificar si el usuario es administrador
+    // Verificar si el usuario es administrador o founder
     const adminUser = await User.findById(adminId);
-    if (!adminUser || adminUser.role !== 'admin') {
+    if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'founder')) {
       return NextResponse.json(
         { error: 'Acceso denegado: Se requieren permisos de administrador' },
         { status: 403 }

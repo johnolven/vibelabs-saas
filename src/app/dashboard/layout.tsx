@@ -42,17 +42,59 @@ interface UserProfile {
   // avatar?: string; // Removed for simplicity
 }
 
-// Menús para diferentes roles de usuario
-const adminMenuItems: MenuItem[] = [
+// Menús para diferentes roles de usuario - Investor Relations Platform
+const founderMenuItems: MenuItem[] = [
   {
     name: 'Dashboard',
     icon: 'home',
     path: '/dashboard'
   },
   {
-    name: 'Analytics',
+    name: 'Cap Table',
     icon: 'analytics',
-    path: '/dashboard/analytics'
+    path: '/dashboard/cap-table'
+  },
+  {
+    name: 'Data Room',
+    icon: 'docs',
+    path: '/dashboard/documents',
+    submenu: [
+      {
+        name: 'Todos los Documentos',
+        icon: 'docs',
+        path: '/dashboard/documents'
+      },
+      {
+        name: 'Legal',
+        icon: 'docs',
+        path: '/dashboard/documents?folder=legal'
+      },
+      {
+        name: 'Financieros',
+        icon: 'docs',
+        path: '/dashboard/documents?folder=financials'
+      },
+      {
+        name: 'Board Materials',
+        icon: 'docs',
+        path: '/dashboard/documents?folder=board_materials'
+      },
+      {
+        name: 'Pitch Deck',
+        icon: 'docs',
+        path: '/dashboard/documents?folder=pitch_deck'
+      }
+    ]
+  },
+  {
+    name: 'Monthly Updates',
+    icon: 'calendar',
+    path: '/dashboard/updates'
+  },
+  {
+    name: 'Métricas',
+    icon: 'analytics',
+    path: '/dashboard/metrics'
   },
   {
     name: 'Administración',
@@ -65,136 +107,11 @@ const adminMenuItems: MenuItem[] = [
         path: '/dashboard/admin/users'
       },
       {
-        name: 'Roles y Permisos',
-        icon: 'settings',
-        path: '/dashboard/admin/roles'
+        name: 'Inversores',
+        icon: 'users',
+        path: '/dashboard/admin/investors'
       }
     ]
-  },
-  {
-    name: 'Clientes',
-    icon: 'customers',
-    path: '/dashboard/customers',
-    submenu: [
-      {
-        name: 'Lista de Clientes',
-        icon: 'users',
-        path: '/dashboard/customers/list'
-      },
-      {
-        name: 'Segmentos',
-        icon: 'users',
-        path: '/dashboard/customers/segments'
-      }
-    ]
-  },
-  {
-    name: 'Pagos',
-    icon: 'payments',
-    path: '/dashboard/payments',
-    submenu: [
-      {
-        name: 'Facturas',
-        icon: 'payments',
-        path: '/dashboard/payments/invoices'
-      },
-      {
-        name: 'Suscripciones',
-        icon: 'payments',
-        path: '/dashboard/payments/subscriptions'
-      }
-    ]
-  },
-  {
-    name: 'Tareas',
-    icon: 'tasks',
-    path: '/dashboard/tasks'
-  },
-  {
-    name: 'Calendario',
-    icon: 'calendar',
-    path: '/dashboard/calendar'
-  },
-  {
-    name: 'Reuniones',
-    icon: 'meetings',
-    path: '/dashboard/meetings'
-  },
-  {
-    name: 'Integraciones',
-    icon: 'integrations',
-    path: '/dashboard/integrations'
-  },
-  {
-    name: 'Documentación',
-    icon: 'docs',
-    path: '/dashboard/docs'
-  },
-  {
-    name: 'Soporte',
-    icon: 'help',
-    path: '/dashboard/support'
-  },
-  {
-    name: 'Ajustes',
-    icon: 'settings',
-    path: '/dashboard/settings',
-    submenu: [
-      {
-        name: 'Perfil',
-        icon: 'profile',
-        path: '/dashboard/settings/profile'
-      },
-      {
-        name: 'Notificaciones',
-        icon: 'notifications',
-        path: '/dashboard/settings/notifications'
-      },
-      {
-        name: 'Equipo',
-        icon: 'users',
-        path: '/dashboard/settings/team'
-      },
-      {
-        name: 'Facturación',
-        icon: 'payments',
-        path: '/dashboard/settings/billing'
-      },
-    ]
-  }
-];
-
-// Menú para usuarios regulares (sin acceso a gestión de usuarios)
-const regularUserMenuItems: MenuItem[] = [
-  {
-    name: 'Dashboard',
-    icon: 'home',
-    path: '/dashboard/user'  // Dashboard específico para usuarios normales
-  },
-  {
-    name: 'Tareas',
-    icon: 'tasks',
-    path: '/dashboard/tasks'
-  },
-  {
-    name: 'Calendario',
-    icon: 'calendar',
-    path: '/dashboard/calendar'
-  },
-  {
-    name: 'Reuniones',
-    icon: 'meetings',
-    path: '/dashboard/meetings'
-  },
-  {
-    name: 'Documentación',
-    icon: 'docs',
-    path: '/dashboard/docs'
-  },
-  {
-    name: 'Soporte',
-    icon: 'help',
-    path: '/dashboard/support'
   },
   {
     name: 'Ajustes',
@@ -215,39 +132,35 @@ const regularUserMenuItems: MenuItem[] = [
   }
 ];
 
-// Cliente de SaaS
-const clientMenuItems: MenuItem[] = [
+// Admin tiene los mismos permisos que founder
+const adminMenuItems = founderMenuItems;
+
+// Menú para inversores (read-only)
+const investorMenuItems: MenuItem[] = [
   {
-    name: 'Dashboard',
+    name: 'Portal',
     icon: 'home',
-    path: '/dashboard/client'  // Dashboard específico para clientes
+    path: '/dashboard/investor'
   },
   {
-    name: 'Analytics',
+    name: 'Cap Table',
     icon: 'analytics',
-    path: '/dashboard/analytics'
+    path: '/dashboard/investor/cap-table'
   },
   {
-    name: 'Pagos',
-    icon: 'payments',
-    path: '/dashboard/payments',
-    submenu: [
-      {
-        name: 'Facturas',
-        icon: 'payments',
-        path: '/dashboard/payments/invoices'
-      },
-      {
-        name: 'Suscripciones',
-        icon: 'payments',
-        path: '/dashboard/payments/subscriptions'
-      }
-    ]
+    name: 'Data Room',
+    icon: 'docs',
+    path: '/dashboard/investor/documents'
   },
   {
-    name: 'Soporte',
-    icon: 'help',
-    path: '/dashboard/support'
+    name: 'Updates',
+    icon: 'calendar',
+    path: '/dashboard/investor/updates'
+  },
+  {
+    name: 'Métricas',
+    icon: 'analytics',
+    path: '/dashboard/investor/metrics'
   },
   {
     name: 'Ajustes',
@@ -258,12 +171,62 @@ const clientMenuItems: MenuItem[] = [
         name: 'Perfil',
         icon: 'profile',
         path: '/dashboard/settings/profile'
-      },
+      }
+    ]
+  }
+];
+
+// Board member tiene acceso similar a investor pero puede comentar
+const boardMemberMenuItems = investorMenuItems;
+
+// Potential investor - acceso limitado
+const potentialInvestorMenuItems: MenuItem[] = [
+  {
+    name: 'Portal',
+    icon: 'home',
+    path: '/dashboard/investor'
+  },
+  {
+    name: 'Pitch Deck',
+    icon: 'docs',
+    path: '/dashboard/investor/documents?folder=pitch_deck'
+  },
+  {
+    name: 'Ajustes',
+    icon: 'settings',
+    path: '/dashboard/settings',
+    submenu: [
       {
-        name: 'Facturación',
-        icon: 'payments',
-        path: '/dashboard/settings/billing'
-      },
+        name: 'Perfil',
+        icon: 'profile',
+        path: '/dashboard/settings/profile'
+      }
+    ]
+  }
+];
+
+// Follower - solo product updates, acceso mínimo
+const followerMenuItems: MenuItem[] = [
+  {
+    name: 'Portal',
+    icon: 'home',
+    path: '/dashboard/investor'
+  },
+  {
+    name: 'Product Updates',
+    icon: 'calendar',
+    path: '/dashboard/investor/updates'
+  },
+  {
+    name: 'Ajustes',
+    icon: 'settings',
+    path: '/dashboard/settings',
+    submenu: [
+      {
+        name: 'Perfil',
+        icon: 'profile',
+        path: '/dashboard/settings/profile'
+      }
     ]
   }
 ];
@@ -292,6 +255,18 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
+  
+  // Verificar PRIMERO si estamos en una ruta con layout específico
+  // Si es así, solo renderizar children sin sidebar del layout principal
+  const hasSpecificLayout = pathname.startsWith('/dashboard/admin') || 
+                            pathname.startsWith('/dashboard/investor') || 
+                            pathname.startsWith('/dashboard/follower') ||
+                            pathname.startsWith('/dashboard/board');
+
+  if (hasSpecificLayout) {
+    return <>{children}</>;
+  }
+
   const [isMenuExpanded, setIsMenuExpanded] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [activeSubmenus, setActiveSubmenus] = useState<string[]>([]);
@@ -382,51 +357,43 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       console.log('Plan de suscripción:', subscriptionPlan);
       console.log('Estado de suscripción:', subscriptionStatus);
       
-      // Determinar el tipo efectivo de usuario basado en rol y suscripción
-      let effectiveRole = role;
-      
-      // Si el usuario tiene un plan premium y suscripción activa, tratarlo como cliente
-      // PERO solo si no es admin (los admin mantienen su rol independientemente de la suscripción)
-      if (role !== 'admin' && subscriptionPlan !== 'free' && subscriptionStatus === 'active') {
-        console.log('Usuario con suscripción activa, tratando como cliente');
-        effectiveRole = 'client';
-      }
-      
       // Guardar perfil con rol incluido
       setProfile({ 
         name, 
         email,
-        role: effectiveRole // Usar el rol efectivo
+        role: role
       });
       
-      // Asignar menú según el rol efectivo del usuario
-      if (effectiveRole === 'admin') {
-        console.log('Rol efectivo: Administrador');
-        setMenuItems(adminMenuItems);
-        
-        // Si está en la ruta de usuario o cliente y es admin, redirigir al dashboard admin
-        if (pathname === '/dashboard/user' || pathname === '/dashboard/client') {
-          console.log('Redirigiendo a /dashboard');
-          router.push('/dashboard');
+      // Redirigir según el rol a su layout específico
+      if (role === 'founder' || role === 'admin') {
+        console.log(`Rol: ${role} - Redirigiendo a /dashboard/admin`);
+        if (!pathname.startsWith('/dashboard/admin') && !pathname.startsWith('/dashboard/settings')) {
+          router.push('/dashboard/admin');
         }
-      } else if (effectiveRole === 'client') {
-        console.log('Rol efectivo: Cliente (con suscripción)');
-        setMenuItems(clientMenuItems);
-        
-        // Si está en otra ruta que no corresponde a cliente, redirigir al dashboard de cliente
-        if (pathname === '/dashboard' || pathname === '/dashboard/user') {
-          console.log('Redirigiendo a /dashboard/client');
-          router.push('/dashboard/client');
+      } else if (role === 'investor') {
+        console.log('Rol: Investor - Redirigiendo a /dashboard/investor');
+        if (!pathname.startsWith('/dashboard/investor') && !pathname.startsWith('/dashboard/settings')) {
+          router.push('/dashboard/investor');
+        }
+      } else if (role === 'boardmember') {
+        console.log('Rol: Board Member - Redirigiendo a /dashboard/investor');
+        if (!pathname.startsWith('/dashboard/investor') && !pathname.startsWith('/dashboard/settings')) {
+          router.push('/dashboard/investor');
+        }
+      } else if (role === 'potential_investor') {
+        console.log('Rol: Potential Investor - Redirigiendo a /dashboard/investor');
+        if (!pathname.startsWith('/dashboard/investor') && !pathname.startsWith('/dashboard/settings')) {
+          router.push('/dashboard/investor');
+        }
+      } else if (role === 'follower') {
+        console.log('Rol: Follower - Redirigiendo a /dashboard/follower');
+        if (!pathname.startsWith('/dashboard/follower') && !pathname.startsWith('/dashboard/settings')) {
+          router.push('/dashboard/follower');
         }
       } else {
-        console.log('Rol efectivo: Usuario Regular');
-        setMenuItems(regularUserMenuItems);
-        
-        // Si está en otra ruta que no corresponde a usuario regular, redirigir al dashboard de usuario
-        if (pathname === '/dashboard' || pathname === '/dashboard/client') {
-          console.log('Redirigiendo a /dashboard/user');
-          router.push('/dashboard/user');
-        }
+        // Fallback para roles antiguos o no reconocidos
+        console.log('Rol no reconocido, redirigiendo a follower');
+        router.push('/dashboard/follower');
       }
       
     } catch (error) {
@@ -528,8 +495,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden whitespace-nowrap"
                 >
-                   <Link href={profile.role === 'admin' ? '/dashboard' : profile.role === 'client' ? '/dashboard/client' : '/dashboard/user'} className="text-xl font-bold bg-gradient-to-r from-primary to-blue-500 dark:to-blue-400 bg-clip-text text-transparent">
-                     SaaS Starter
+                   <Link href={profile.role === 'founder' || profile.role === 'admin' ? '/dashboard' : '/dashboard/investor'} className="text-xl font-bold bg-gradient-to-r from-primary to-blue-500 dark:to-blue-400 bg-clip-text text-transparent">
+                     CapFlow
                    </Link>
                 </motion.div>
               )}
@@ -538,12 +505,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Mostrar badge de rol si está expandido */}
             {isMenuExpanded && (
               <div className={`px-2 py-1 rounded-md text-xs font-medium mr-1 ${
-                profile.role === 'admin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                profile.role === 'client' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                profile.role === 'potential_investor' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
               }`}>
-                {profile.role === 'admin' ? 'Admin' : 
-                 profile.role === 'client' ? 'Cliente' : 'Usuario'}
+                {profile.role === 'founder' ? 'Founder' : 
+                 profile.role === 'admin' ? 'Admin' : 
+                 profile.role === 'investor' ? 'Investor' :
+                 profile.role === 'boardmember' ? 'Board' :
+                 profile.role === 'potential_investor' ? 'Potential Investor' :
+                 'Follower'}
               </div>
             )}
             
@@ -706,12 +680,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                          <p className="text-sm font-semibold text-popover-foreground truncate">{profile.name}</p>
                          <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
                          <div className={`mt-1 px-2 py-0.5 rounded text-xs font-medium inline-block ${
-                            profile.role === 'admin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                            profile.role === 'client' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                            profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                            profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                            profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                            profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                            profile.role === 'potential_investor' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                             'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                         }`}>
-                            {profile.role === 'admin' ? 'Admin' : 
-                             profile.role === 'client' ? 'Cliente' : 'Usuario'}
+                            {profile.role === 'founder' ? 'Founder' : 
+                             profile.role === 'admin' ? 'Admin' : 
+                             profile.role === 'investor' ? 'Investor' :
+                             profile.role === 'boardmember' ? 'Board' :
+                             profile.role === 'potential_investor' ? 'Potential Investor' :
+                             'Follower'}
                         </div>
                       </div>
                    )}
@@ -790,12 +771,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {/* Mostrar badge de rol en móvil */}
                 {isMobileView && (
                   <div className={`ml-2 px-2 py-1 rounded-md text-xs font-medium ${
-                    profile.role === 'admin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                    profile.role === 'client' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                    profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                    profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                    profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                    profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
                     'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                   }`}>
-                    {profile.role === 'admin' ? 'Admin' : 
-                     profile.role === 'client' ? 'Cliente' : 'Usuario'}
+                    {profile.role === 'founder' ? 'Founder' : 
+                     profile.role === 'admin' ? 'Admin' : 
+                     profile.role === 'investor' ? 'Investor' :
+                     profile.role === 'boardmember' ? 'Board' :
+                     'Potential Investor'}
                   </div>
                 )}
             </div>
@@ -826,12 +812,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <p className="text-sm font-semibold text-popover-foreground truncate">{profile.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
                     <div className={`mt-1 px-2 py-0.5 rounded text-xs font-medium inline-block ${
-                        profile.role === 'admin' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                        profile.role === 'client' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                        profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                        profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                        profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                        profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                        profile.role === 'potential_investor' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                         'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                     }`}>
-                        {profile.role === 'admin' ? 'Admin' : 
-                         profile.role === 'client' ? 'Cliente' : 'Usuario'}
+                        {profile.role === 'founder' ? 'Founder' : 
+                         profile.role === 'admin' ? 'Admin' : 
+                         profile.role === 'investor' ? 'Investor' :
+                         profile.role === 'boardmember' ? 'Board' :
+                         profile.role === 'potential_investor' ? 'Potential Investor' :
+                         'Follower'}
                     </div>
                   </div>
                   <Link

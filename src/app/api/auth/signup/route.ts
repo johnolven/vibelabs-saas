@@ -21,12 +21,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Crear nuevo usuario con rol explícito
+    // Crear nuevo usuario con rol follower por defecto
     const user = await User.create({
       name,
       email,
       password,
-      role: 'user', // Establecer explícitamente como usuario regular
+      role: 'follower', // Establecer explícitamente como follower (default)
     });
 
     // Generar token

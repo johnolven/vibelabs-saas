@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export type UserRole = 'admin' | 'user' | 'client';
+export type UserRole = 'founder' | 'admin' | 'investor' | 'boardmember' | 'potential_investor' | 'follower';
 export type UserStatus = 'active' | 'inactive' | 'pending';
 export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'none';
 export type SubscriptionPlan = 'free' | 'basic' | 'premium' | 'enterprise';
@@ -49,8 +49,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'user', 'client'],
-    default: 'user'
+    enum: ['founder', 'admin', 'investor', 'boardmember', 'potential_investor', 'follower'],
+    default: 'follower'
   },
   status: {
     type: String,
@@ -90,7 +90,7 @@ const userSchema = new mongoose.Schema({
     transform: function(doc, ret) {
       // Asegurar que role siempre se incluye en la serialización
       if (!ret.role) {
-        ret.role = doc.role || 'user';
+        ret.role = doc.role || 'follower';
       }
       return ret;
     }
@@ -119,4 +119,9 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
   }
 };
 
-export default mongoose.models.User || mongoose.model<IUser>('User', userSchema); 
+// Limpiar el modelo cacheado si existe para forzar la actualización del enum
+if (mongoose.models.User) {
+  delete mongoose.models.User;
+}
+
+export default mongoose.model<IUser>('User', userSchema); 

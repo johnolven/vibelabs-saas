@@ -31,11 +31,12 @@ export async function POST(req: Request) {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Crear un nuevo usuario
+      // Crear un nuevo usuario con rol follower por defecto
       user = await User.create({
         name,
         email,
         googleId,
+        role: 'follower', // Establecer explícitamente como follower
         // Generar una contraseña aleatoria para usuarios de Google
         password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8),
       });
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role || 'user',
+        role: user.role || 'follower',
         status: user.status || 'active',
         subscriptionPlan: user.subscriptionPlan || 'free',
         subscriptionStatus: user.subscriptionStatus || 'none',

@@ -35,87 +35,67 @@ export default function RolesAndPermissions() {
   });
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
-  // Cargar datos (simulado)
+  // Cargar datos desde API
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Simular carga desde API
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Permisos de ejemplo
-        const mockPermissions: Permission[] = [
-          { id: 'p1', name: 'users:read', description: 'Ver usuarios', module: 'Usuarios' },
-          { id: 'p2', name: 'users:create', description: 'Crear usuarios', module: 'Usuarios' },
-          { id: 'p3', name: 'users:update', description: 'Editar usuarios', module: 'Usuarios' },
-          { id: 'p4', name: 'users:delete', description: 'Eliminar usuarios', module: 'Usuarios' },
-          { id: 'p5', name: 'roles:read', description: 'Ver roles', module: 'Roles' },
-          { id: 'p6', name: 'roles:create', description: 'Crear roles', module: 'Roles' },
-          { id: 'p7', name: 'roles:update', description: 'Editar roles', module: 'Roles' },
-          { id: 'p8', name: 'roles:delete', description: 'Eliminar roles', module: 'Roles' },
-          { id: 'p9', name: 'clients:read', description: 'Ver clientes', module: 'Clientes' },
-          { id: 'p10', name: 'clients:create', description: 'Crear clientes', module: 'Clientes' },
-          { id: 'p11', name: 'clients:update', description: 'Editar clientes', module: 'Clientes' },
-          { id: 'p12', name: 'clients:delete', description: 'Eliminar clientes', module: 'Clientes' },
-          { id: 'p13', name: 'billing:read', description: 'Ver facturación', module: 'Facturación' },
-          { id: 'p14', name: 'billing:create', description: 'Crear factura', module: 'Facturación' },
-          { id: 'p15', name: 'reports:view', description: 'Ver reportes', module: 'Reportes' },
-          { id: 'p16', name: 'settings:manage', description: 'Administrar configuración', module: 'Configuración' },
-        ];
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('No hay token de autenticación');
+        }
 
-        // Roles de ejemplo
-        const mockRoles: Role[] = [
-          {
-            id: 'r1',
-            name: 'Administrador',
-            description: 'Acceso completo a todas las funciones del sistema',
-            permissions: mockPermissions.map(p => p.id),
-            createdAt: '2023-01-10T08:00:00Z',
-            updatedAt: '2023-05-15T10:30:00Z',
-            usersCount: 2
-          },
-          {
-            id: 'r2',
-            name: 'Usuario',
-            description: 'Acceso limitado a funciones básicas',
-            permissions: ['p1', 'p5', 'p9', 'p13', 'p15'],
-            createdAt: '2023-01-12T09:15:00Z',
-            updatedAt: '2023-04-20T14:45:00Z',
-            usersCount: 15
-          },
-          {
-            id: 'r3',
-            name: 'Cliente',
-            description: 'Acceso exclusivo para clientes',
-            permissions: ['p9', 'p13', 'p15'],
-            createdAt: '2023-01-15T11:30:00Z',
-            updatedAt: '2023-03-10T16:20:00Z',
-            usersCount: 28
-          },
-          {
-            id: 'r4',
-            name: 'Soporte',
-            description: 'Acceso para equipo de soporte',
-            permissions: ['p1', 'p3', 'p5', 'p9', 'p11', 'p13', 'p15'],
-            createdAt: '2023-02-05T10:45:00Z',
-            updatedAt: '2023-05-22T09:10:00Z',
-            usersCount: 5
-          },
-          {
-            id: 'r5',
-            name: 'Ventas',
-            description: 'Acceso para equipo de ventas',
-            permissions: ['p1', 'p9', 'p10', 'p11', 'p13', 'p14', 'p15'],
-            createdAt: '2023-02-10T13:20:00Z',
-            updatedAt: '2023-04-30T11:30:00Z',
-            usersCount: 8
+        // Cargar permisos
+        const permissionsResponse = await fetch('/api/admin/permissions', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache'
           }
-        ];
+        });
+
+        if (!permissionsResponse.ok) {
+          throw new Error('Error al cargar permisos');
+        }
+
+        const permissionsData = await permissionsResponse.json();
+        setPermissions(permissionsData);
+
+        // Cargar roles
+        const rolesResponse = await fetch('/api/admin/roles', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        if (!rolesResponse.ok) {
+          throw new Error('Error al cargar roles');
+        }
+
+        const rolesData = await rolesResponse.json();
         
-        setPermissions(mockPermissions);
-        setRoles(mockRoles);
+        // Si no hay roles, inicializar los roles del sistema
+        if (rolesData.length === 0) {
+          const initResponse = await fetch('/api/admin/roles/init', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (initResponse.ok) {
+            const initData = await initResponse.json();
+            setRoles(initData.roles || []);
+          } else {
+            throw new Error('Error al inicializar roles del sistema');
+          }
+        } else {
+          setRoles(rolesData);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
+        alert('Error al cargar datos. Por favor, recarga la página.');
       } finally {
         setIsLoading(false);
       }
@@ -157,7 +137,7 @@ export default function RolesAndPermissions() {
   };
 
   // Funciones para gestionar roles
-  const handleCreateRole = () => {
+  const handleCreateRole = async () => {
     // Validar formulario
     const errors: {[key: string]: string} = {};
     if (!newRole.name?.trim()) errors.name = 'El nombre es obligatorio';
@@ -167,28 +147,46 @@ export default function RolesAndPermissions() {
       return;
     }
     
-    // Simular creación en la API
-    const createdRole: Role = {
-      id: `r${roles.length + 1}`,
-      name: newRole.name!,
-      description: newRole.description || '',
-      permissions: newRole.permissions || [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      usersCount: 0
-    };
-    
-    setRoles([...roles, createdRole]);
-    setIsCreatingRole(false);
-    setNewRole({
-      name: '',
-      description: '',
-      permissions: []
-    });
-    setFormErrors({});
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch('/api/admin/roles', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: newRole.name,
+          description: newRole.description || '',
+          permissions: newRole.permissions || []
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al crear rol');
+      }
+
+      const createdRole = await response.json();
+      setRoles([...roles, createdRole]);
+      setIsCreatingRole(false);
+      setNewRole({
+        name: '',
+        description: '',
+        permissions: []
+      });
+      setFormErrors({});
+    } catch (error) {
+      console.error('Error creating role:', error);
+      alert(error instanceof Error ? error.message : 'Error al crear rol');
+    }
   };
 
-  const handleUpdateRole = () => {
+  const handleUpdateRole = async () => {
     if (!selectedRole) return;
     
     // Validar formulario
@@ -200,21 +198,47 @@ export default function RolesAndPermissions() {
       return;
     }
     
-    // Actualizar rol en el estado
-    const updatedRoles = roles.map(role => 
-      role.id === selectedRole.id ? {
-        ...selectedRole,
-        updatedAt: new Date().toISOString()
-      } : role
-    );
-    
-    setRoles(updatedRoles);
-    setIsEditingRole(false);
-    setSelectedRole(null);
-    setFormErrors({});
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch('/api/admin/roles', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: selectedRole.id,
+          name: selectedRole.name,
+          description: selectedRole.description || '',
+          permissions: selectedRole.permissions || []
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar rol');
+      }
+
+      const updatedRole = await response.json();
+      const updatedRoles = roles.map(role => 
+        role.id === selectedRole.id ? updatedRole : role
+      );
+      
+      setRoles(updatedRoles);
+      setIsEditingRole(false);
+      setSelectedRole(null);
+      setFormErrors({});
+    } catch (error) {
+      console.error('Error updating role:', error);
+      alert(error instanceof Error ? error.message : 'Error al actualizar rol');
+    }
   };
 
-  const handleDeleteRole = (roleId: string) => {
+  const handleDeleteRole = async (roleId: string) => {
     // Verificar si hay usuarios asignados
     const role = roles.find(r => r.id === roleId);
     if (role && role.usersCount > 0) {
@@ -222,8 +246,32 @@ export default function RolesAndPermissions() {
       return;
     }
     
-    if (window.confirm('¿Estás seguro de que quieres eliminar este rol?')) {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este rol?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch(`/api/admin/roles?id=${roleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al eliminar rol');
+      }
+
       setRoles(roles.filter(role => role.id !== roleId));
+    } catch (error) {
+      console.error('Error deleting role:', error);
+      alert(error instanceof Error ? error.message : 'Error al eliminar rol');
     }
   };
 
