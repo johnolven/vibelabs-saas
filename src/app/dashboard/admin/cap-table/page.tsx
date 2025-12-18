@@ -940,28 +940,28 @@ function ShareholderForm({
     // Preparar datos de vesting
     const vestingData: any = {};
     if (hasVesting) {
-      vestingData.vestingStartDate = formData.vestingStartDate ? new Date(formData.vestingStartDate) : undefined;
+      // Enviar la fecha como string ISO para que se serialice correctamente en JSON
+      vestingData.vestingStartDate = formData.vestingStartDate || undefined;
       vestingData.vestingCliffMonths = formData.vestingCliffMonths || 0;
       vestingData.vestingPeriodMonths = formData.vestingPeriodMonths;
       vestingData.vestingSchedule = formData.vestingSchedule || 'linear';
-    } else {
-      // Si no tiene vesting, asegurar que se limpien los campos
-      vestingData.vestingStartDate = null;
-      vestingData.vestingCliffMonths = null;
-      vestingData.vestingPeriodMonths = null;
-      vestingData.vestingSchedule = null;
     }
 
-    onSave({
+    const shareholderData = {
       ...formData,
-      investmentDate: formData.investmentDate ? new Date(formData.investmentDate) : undefined,
-      // Vesting fields
-      ...vestingData,
+      investmentDate: formData.investmentDate || undefined,
+      // Vesting fields - solo incluir si hasVesting es true
+      ...(hasVesting ? vestingData : {}),
       // Agregar información de transferencia si aplica
       ...(isTransfer && transferFromShareholderId ? { transferFromShareholderId } : {}),
       // Agregar información de reserved pool si aplica
       ...(fromReservedPool ? { fromReservedPool: true } : {})
-    });
+    };
+
+    console.log('Datos a enviar:', shareholderData);
+    console.log('Has vesting:', hasVesting);
+    console.log('Vesting data:', vestingData);
+    onSave(shareholderData);
   };
 
   return (
