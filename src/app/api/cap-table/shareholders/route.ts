@@ -36,14 +36,6 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
     
-    console.log('Datos recibidos en POST:', JSON.stringify(data, null, 2));
-    console.log('Vesting data recibida:', {
-      vestingStartDate: data.vestingStartDate,
-      vestingCliffMonths: data.vestingCliffMonths,
-      vestingPeriodMonths: data.vestingPeriodMonths,
-      vestingSchedule: data.vestingSchedule
-    });
-    
     // Validar datos del shareholder
     if (!data.name || !data.type || !data.equityType || data.shares === undefined) {
       return NextResponse.json(
@@ -160,25 +152,8 @@ export async function POST(request: NextRequest) {
       ...(data.vestingSchedule ? { vestingSchedule: data.vestingSchedule } : {})
     };
 
-    console.log('Nuevo shareholder a crear:', JSON.stringify(newShareholder, null, 2));
-    console.log('Vesting en newShareholder:', {
-      vestingStartDate: newShareholder.vestingStartDate,
-      vestingCliffMonths: newShareholder.vestingCliffMonths,
-      vestingPeriodMonths: newShareholder.vestingPeriodMonths,
-      vestingSchedule: newShareholder.vestingSchedule
-    });
-
     capTable.shareholders.push(newShareholder);
     await capTable.save();
-    
-    // Verificar que se guardó correctamente
-    const savedShareholder = capTable.shareholders[capTable.shareholders.length - 1];
-    console.log('Shareholder guardado. Verificando vesting guardado:', {
-      vestingStartDate: savedShareholder.vestingStartDate,
-      vestingCliffMonths: savedShareholder.vestingCliffMonths,
-      vestingPeriodMonths: savedShareholder.vestingPeriodMonths,
-      vestingSchedule: savedShareholder.vestingSchedule
-    });
 
     // Recargar el documento para obtener los virtuals calculados
     const updatedCapTable = await CapTable.findById(capTable._id);

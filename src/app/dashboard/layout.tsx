@@ -256,17 +256,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   
-  // Verificar PRIMERO si estamos en una ruta con layout específico
-  // Si es así, solo renderizar children sin sidebar del layout principal
-  const hasSpecificLayout = pathname.startsWith('/dashboard/admin') || 
-                            pathname.startsWith('/dashboard/investor') || 
-                            pathname.startsWith('/dashboard/follower') ||
-                            pathname.startsWith('/dashboard/board');
-
-  if (hasSpecificLayout) {
-    return <>{children}</>;
-  }
-
+  // TODOS LOS HOOKS DEBEN IR ANTES DE CUALQUIER RETURN CONDICIONAL
   const [isMenuExpanded, setIsMenuExpanded] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [activeSubmenus, setActiveSubmenus] = useState<string[]>([]);
@@ -278,20 +268,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Agregar estado para control de menú móvil
   const [isMobileView, setIsMobileView] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Detector de tamaño de pantalla
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobileView(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setIsMenuExpanded(false);
+      }
     };
     
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
-
-  // Seleccionar ítems para mostrar en el menú móvil (los más importantes)
-  const mobileMenuItems = menuItems.slice(0, 5);
 
   // Fetch user profile logic (simplified)
   const loadProfile = useCallback(async (token: string) => {
@@ -462,17 +453,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return pathname === subItemPath;
   };
 
-  // Use effect para actualizar rutas activas
-  useEffect(() => {
-    // Encuentra la ruta activa para resaltar el menú correspondiente
-    const pathWithoutDashboard = pathname.replace('/dashboard', '');
-    const currentPath = pathWithoutDashboard === '' ? '/' : pathWithoutDashboard;
-    
-    // Actualiza los items con la ruta activa
-    setActiveSubmenus(prev => prev.includes(currentPath) ? prev : [...prev, currentPath]);
-    
-    // Opcionalmente, deselecciona submenús cuando la ruta principal cambia
-  }, [pathname, menuItems]);
+  // Verificar si estamos en una ruta con layout específico
+  // Si es así, solo renderizar children sin sidebar del layout principal
+  const hasSpecificLayout = pathname.startsWith('/dashboard/admin') || 
+                            pathname.startsWith('/dashboard/investor') || 
+                            pathname.startsWith('/dashboard/follower') ||
+                            pathname.startsWith('/dashboard/board');
+
+  if (hasSpecificLayout) {
+    return <>{children}</>;
+  }
+
+  // Seleccionar ítems para mostrar en el menú móvil (los más importantes)
+  const mobileMenuItems = menuItems.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -741,129 +734,199 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <main className={`flex-1 transition-all duration-300 ease-in-out ${
         !isMobileView ? (isMenuExpanded ? 'ml-64' : 'ml-20') : 'ml-0 mb-16'
       } ${isMobileView ? 'pt-16' : 'pt-16'} bg-background flex-grow`}>
-        <header className={`fixed top-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-md border-b border-border z-30 flex items-center px-6 ${
-            !isMobileView 
-              ? (isMenuExpanded ? 'pl-72' : 'pl-28')
-              : 'pl-6' /* Adjust padding based on sidebar */
-          }`}>
-            {/* Mobile Header with Menu Button */}
-            {isMobileView && (
+        {/* Mobile Header */}
+        {isMobileView && (
+          <header className="fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-30 flex items-center justify-between px-4 shadow-sm">
+            <div className="flex items-center gap-3">
               <button 
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                className="mr-4 p-2 rounded-full hover:bg-secondary"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg hover:bg-secondary transition-colors"
+                aria-label="Menú"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-blue-500 dark:to-blue-400 flex items-center justify-center text-primary-foreground font-semibold text-sm overflow-hidden">
-                  {isLoadingProfile ? (
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    getInitials(profile.name)
-                  )}
-                </div>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
               </button>
-            )}
-            
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+                  CapFlow
+                </h1>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                  profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                  profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                  profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                  profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+                  profile.role === 'potential_investor' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                  'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                }`}>
+                  {profile.role === 'founder' ? 'Founder' : 
+                   profile.role === 'admin' ? 'Admin' : 
+                   profile.role === 'investor' ? 'Investor' :
+                   profile.role === 'boardmember' ? 'Board' :
+                   profile.role === 'potential_investor' ? 'Potential Investor' :
+                   'Follower'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ModeToggle />
+            </div>
+          </header>
+        )}
+
+        {/* Desktop Header */}
+        {!isMobileView && (
+          <header className={`fixed top-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-md border-b border-border z-30 flex items-center px-6 ${
+            isMenuExpanded ? 'pl-72' : 'pl-28'
+          }`}>
             {/* Header Title */}
             <div className="flex items-center">
-                <h1 className="text-xl font-semibold text-foreground">
-                  {(pathname.split('/').pop() || 'Dashboard').charAt(0).toUpperCase() + (pathname.split('/').pop() || 'Dashboard').slice(1)}
-                </h1>
-                
-                {/* Mostrar badge de rol en móvil */}
-                {isMobileView && (
-                  <div className={`ml-2 px-2 py-1 rounded-md text-xs font-medium ${
-                    profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                    profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                    profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                    profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                    'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                  }`}>
-                    {profile.role === 'founder' ? 'Founder' : 
-                     profile.role === 'admin' ? 'Admin' : 
-                     profile.role === 'investor' ? 'Investor' :
-                     profile.role === 'boardmember' ? 'Board' :
-                     'Potential Investor'}
-                  </div>
-                )}
+              <h1 className="text-xl font-semibold text-foreground">
+                {(pathname.split('/').pop() || 'Dashboard').charAt(0).toUpperCase() + (pathname.split('/').pop() || 'Dashboard').slice(1)}
+              </h1>
             </div>
 
             {/* Header Actions */}
             <div className="ml-auto flex items-center space-x-2">
-                {/* Notification icon */}
-                <button className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('notifications')} />
-                  </svg>
-                </button>
-                <ModeToggle />
+              {/* Notification icon */}
+              <button className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('notifications')} />
+                </svg>
+              </button>
+              <ModeToggle />
             </div>
-            
-            {/* Profile dropdown menu for mobile */}
-            <AnimatePresence>
-              {isMobileView && isProfileMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full right-4 mt-2 w-auto min-w-[250px] bg-popover rounded-xl shadow-lg border border-border py-2 z-50"
-                  role="menu"
-                >
-                  <div className="px-4 py-2 border-b border-border mb-1">
-                    <p className="text-sm font-semibold text-popover-foreground truncate">{profile.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
-                    <div className={`mt-1 px-2 py-0.5 rounded text-xs font-medium inline-block ${
-                        profile.role === 'founder' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                        profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                        profile.role === 'investor' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                        profile.role === 'boardmember' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-                        profile.role === 'potential_investor' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                        'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                    }`}>
-                        {profile.role === 'founder' ? 'Founder' : 
-                         profile.role === 'admin' ? 'Admin' : 
-                         profile.role === 'investor' ? 'Investor' :
-                         profile.role === 'boardmember' ? 'Board' :
-                         profile.role === 'potential_investor' ? 'Potential Investor' :
-                         'Follower'}
+          </header>
+        )}
+
+        {/* Mobile Menu Drawer */}
+        {isMobileView && isMobileMenuOpen && (
+          <AnimatePresence>
+            <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsMobileMenuOpen(false)}>
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'tween', duration: 0.3 }}
+                className="fixed left-0 top-0 bottom-0 w-72 bg-card shadow-xl z-50 overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header del drawer */}
+                <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 to-blue-500/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white font-semibold text-base">
+                        {isLoadingProfile ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          getInitials(profile.name)
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">{profile.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-2 rounded-lg hover:bg-secondary transition-colors"
+                      aria-label="Cerrar menú"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
+                </div>
+
+                {/* Navigation Menu */}
+                <nav className="p-2 flex-1 overflow-y-auto">
+                  {menuItems.map((item) => (
+                    <div key={item.path}>
+                      <div
+                        onClick={() => {
+                          if (item.submenu) {
+                            toggleSubmenu(item.path);
+                          } else {
+                            router.push(item.path);
+                            setIsMobileMenuOpen(false);
+                          }
+                        }}
+                        className={`flex items-center px-4 py-3 rounded-lg cursor-pointer transition-colors mb-1 ${
+                          isMenuItemActive(item.path)
+                            ? 'bg-primary/10 text-primary font-semibold'
+                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                        }`}
+                      >
+                        <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={getIconPath(item.icon)} />
+                        </svg>
+                        <span className="flex-1">{item.name}</span>
+                        {item.submenu && (
+                          <svg 
+                            className={`w-4 h-4 transition-transform ${activeSubmenus.includes(item.path) ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('chevronDown')} />
+                          </svg>
+                        )}
+                      </div>
+                      {item.submenu && activeSubmenus.includes(item.path) && (
+                        <div className="ml-4 mt-1 mb-2 space-y-1 border-l-2 border-primary/20 pl-4">
+                          {item.submenu.map((subItem) => (
+                            <Link
+                              key={subItem.path}
+                              href={subItem.path}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className={`flex items-center px-3 py-2 rounded-md text-sm transition-colors ${
+                                pathname === subItem.path
+                                  ? 'bg-primary/10 text-primary font-medium'
+                                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                              }`}
+                            >
+                              <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath(subItem.icon)} />
+                              </svg>
+                              <span>{subItem.name}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+
+                {/* Footer con Perfil y Cerrar Sesión */}
+                <div className="border-t border-border p-4 bg-muted/30">
                   <Link
                     href="/dashboard/settings/profile"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    className="flex items-center px-4 py-2.5 text-sm text-popover-foreground hover:bg-secondary hover:text-foreground w-full text-left"
-                    role="menuitem"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-lg hover:bg-secondary transition-colors mb-2"
                   >
                     <svg className="w-5 h-5 mr-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('profile')} />
                     </svg>
-                    Perfil
+                    <span className="font-medium">Perfil</span>
                   </Link>
-                  <Link
-                    href="/dashboard/settings"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    className="flex items-center px-4 py-2.5 text-sm text-popover-foreground hover:bg-secondary hover:text-foreground w-full text-left"
-                    role="menuitem"
-                  >
-                    <svg className="w-5 h-5 mr-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('settings')} />
-                    </svg>
-                    Ajustes
-                  </Link>
-                  <div className="border-t border-border my-1"></div>
                   <button
-                    onClick={handleSignOut}
-                    className="flex items-center w-full px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    role="menuitem"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="flex items-center w-full px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('logout')} />
                     </svg>
-                    Cerrar Sesión
+                    <span className="font-medium">Cerrar Sesión</span>
                   </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-        </header>
+                </div>
+              </motion.div>
+            </div>
+          </AnimatePresence>
+        )}
 
         {/* Main Content */}
         <div className="p-6 min-h-screen">

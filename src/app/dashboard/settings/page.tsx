@@ -7,8 +7,8 @@ export default function Settings() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirigir a la página del perfil por defecto
-    router.push('/dashboard/settings/profile');
+    // Redirigir a la página del perfil por defecto (admin)
+    router.push('/dashboard/admin/profile');
   }, [router]);
 
   return null;

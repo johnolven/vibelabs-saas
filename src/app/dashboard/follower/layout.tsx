@@ -60,6 +60,22 @@ export default function FollowerLayout({ children }: FollowerLayoutProps) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [profile, setProfile] = useState({ name: '', email: '' });
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Detector de tamaño de pantalla
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobileView(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setIsMenuExpanded(false);
+      }
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -103,13 +119,14 @@ export default function FollowerLayout({ children }: FollowerLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ width: isMenuExpanded ? 256 : 80 }}
-        transition={{ duration: 0.3 }}
-        className="bg-card shadow-md fixed h-full z-40 flex flex-col border-r border-border"
-      >
+      {/* Sidebar - ocultar en mobile */}
+      {!isMobileView && (
+        <motion.aside
+          initial={false}
+          animate={{ width: isMenuExpanded ? 256 : 80 }}
+          transition={{ duration: 0.3 }}
+          className="bg-card shadow-md fixed h-full z-40 flex flex-col border-r border-border"
+        >
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <AnimatePresence>
@@ -176,7 +193,7 @@ export default function FollowerLayout({ children }: FollowerLayoutProps) {
 
         {/* Profile Section */}
         <div className="border-t border-border p-2">
-          <div className="relative">
+          <div className="relative z-10">
             <button
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className="w-full flex items-center p-2 rounded-lg hover:bg-secondary"
@@ -195,32 +212,218 @@ export default function FollowerLayout({ children }: FollowerLayoutProps) {
                 </div>
               )}
             </button>
-            {isProfileMenuOpen && (
-              <div className="absolute bottom-full left-2 right-2 mb-2 bg-popover rounded-lg shadow-lg border border-border py-2 z-50">
-                <Link
-                  href="/dashboard/settings/profile"
-                  onClick={() => setIsProfileMenuOpen(false)}
-                  className="flex items-center px-4 py-2 text-sm hover:bg-secondary"
+            <AnimatePresence>
+              {isProfileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-full left-2 right-2 mb-2 w-auto min-w-[200px] bg-popover rounded-xl shadow-lg border border-border py-2 z-50"
+                  role="menu"
                 >
-                  Perfil
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="flex items-center w-full px-4 py-2 text-sm text-destructive hover:bg-destructive/10"
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            )}
+                  {!isMenuExpanded && (
+                    <div className="px-4 py-2 border-b border-border mb-1">
+                      <p className="text-sm font-semibold text-popover-foreground truncate">{profile.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                      <div className="mt-1 px-2 py-0.5 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded text-xs font-medium inline-block">
+                        Follower
+                      </div>
+                    </div>
+                  )}
+                  <Link
+                    href="/dashboard/settings/profile"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    className="flex items-center px-4 py-2 text-sm text-popover-foreground hover:bg-secondary hover:text-foreground w-full text-left"
+                    role="menuitem"
+                  >
+                    <svg className="w-5 h-5 mr-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('profile')} />
+                    </svg>
+                    Perfil
+                  </Link>
+                  <Link
+                    href="/dashboard/settings"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    className="flex items-center px-4 py-2 text-sm text-popover-foreground hover:bg-secondary hover:text-foreground w-full text-left"
+                    role="menuitem"
+                  >
+                    <svg className="w-5 h-5 mr-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('settings')} />
+                    </svg>
+                    Ajustes
+                  </Link>
+                  <div className="border-t border-border my-1"></div>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center w-full px-4 py-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    role="menuitem"
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('logout')} />
+                    </svg>
+                    Cerrar Sesión
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.aside>
+      )}
 
       {/* Main Content */}
-      <main className={`flex-1 transition-all duration-300 ${isMenuExpanded ? 'ml-64' : 'ml-20'}`}>
-        <div className="p-6">
+      <main className={`flex-1 transition-all duration-300 ${
+        !isMobileView ? (isMenuExpanded ? 'ml-64' : 'ml-20') : 'ml-0 mb-16'
+      }`}>
+        {/* Mobile Header */}
+        {isMobileView && (
+          <header className="fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-30 flex items-center justify-between px-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg hover:bg-secondary transition-colors"
+                aria-label="Menú"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
+                  CapFlow
+                </h1>
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 rounded text-[10px] font-medium">
+                  Follower
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ModeToggle />
+            </div>
+          </header>
+        )}
+
+        {/* Mobile Menu Drawer */}
+        {isMobileView && isMobileMenuOpen && (
+          <AnimatePresence>
+            <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsMobileMenuOpen(false)}>
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'tween', duration: 0.3 }}
+                className="fixed left-0 top-0 bottom-0 w-72 bg-card shadow-xl z-50 overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header del drawer */}
+                <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 to-blue-500/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white font-semibold text-base">
+                        {isLoadingProfile ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          getInitials(profile.name)
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">{profile.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-2 rounded-lg hover:bg-secondary transition-colors"
+                      aria-label="Cerrar menú"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Navigation Menu */}
+                <nav className="p-2 flex-1 overflow-y-auto">
+                  {followerMenuItems.map((item) => (
+                    <div
+                      key={item.path}
+                      onClick={() => {
+                        router.push(item.path);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center px-4 py-3 rounded-lg cursor-pointer transition-colors mb-1 ${
+                        isMenuItemActive(item.path)
+                          ? 'bg-primary/10 text-primary font-semibold'
+                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                      }`}
+                    >
+                      <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={getIconPath(item.icon)} />
+                      </svg>
+                      <span className="flex-1">{item.name}</span>
+                    </div>
+                  ))}
+                </nav>
+
+                {/* Footer con Perfil y Cerrar Sesión */}
+                <div className="border-t border-border p-4 bg-muted/30">
+                  <Link
+                    href="/dashboard/settings/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center px-4 py-3 rounded-lg hover:bg-secondary transition-colors mb-2"
+                  >
+                    <svg className="w-5 h-5 mr-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('profile')} />
+                    </svg>
+                    <span className="font-medium">Perfil</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="flex items-center w-full px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath('logout')} />
+                    </svg>
+                    <span className="font-medium">Cerrar Sesión</span>
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          </AnimatePresence>
+        )}
+
+        <div className={`p-6 ${isMobileView ? 'pt-24' : ''}`}>
           {children}
         </div>
+
+        {/* Mobile Bottom Navigation */}
+        {isMobileView && (
+          <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40 h-16 safe-area-bottom">
+            <div className="grid grid-cols-3 h-full">
+              {followerMenuItems.map((item) => (
+                <button
+                  key={item.path}
+                  onClick={() => router.push(item.path)}
+                  className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
+                    isMenuItemActive(item.path)
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={getIconPath(item.icon)} />
+                  </svg>
+                  <span className="text-[10px] font-medium">{item.name}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+        )}
       </main>
     </div>
   );
