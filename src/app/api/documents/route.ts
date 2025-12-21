@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const folder = searchParams.get('folder');
+    const period = searchParams.get('period');
 
     // Construir query según permisos
     let query: any = { isActive: true };
@@ -51,6 +52,11 @@ export async function GET(request: NextRequest) {
         { error: 'No tienes acceso a esta carpeta' },
         { status: 403 }
       );
+    }
+
+    // Filtrar por período si se especifica (ignorar si es 'all')
+    if (period && period !== 'all') {
+      query['period.value'] = period;
     }
 
     // Filtrar documentos según nivel de acceso
@@ -146,6 +152,15 @@ export async function POST(request: NextRequest) {
 
     await writeFile(filePath, buffer);
 
+    // Obtener período del request si está disponible
+    const periodValue = formData.get('period') as string;
+    const periodType = formData.get('periodType') as string;
+    
+    const periodData = periodValue && periodType ? {
+      type: periodType as 'month' | 'quarter' | 'year',
+      value: periodValue
+    } : undefined;
+
     // Guardar metadata en BD
     const document = await Document.create({
       fileName,
@@ -156,7 +171,8 @@ export async function POST(request: NextRequest) {
       folder,
       description,
       uploadedBy: userId,
-      accessLevel: accessLevel.length > 0 ? accessLevel : ['public']
+      accessLevel: accessLevel.length > 0 ? accessLevel : ['public'],
+      period: periodData
     });
 
     return NextResponse.json({ document }, { status: 201 });

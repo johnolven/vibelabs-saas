@@ -1,0 +1,2 @@
+Nombre,Email,Tipo,Tipo de Equity,Shares,% Ownership,Vested Shares,Unvested Shares,Vesting Start,Vesting Period (meses),Cliff (meses),Investment Amount,Investment Date,Fully Diluted,Notes
+"John","jo@mail.com","founder","common","10000","100.00%","2708","7292","11/30/2024","48","12","1,000","12/20/2025","No","Prueba"

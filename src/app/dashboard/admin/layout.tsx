@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ModeToggle } from "@/components/mode-toggle";
+import PeriodSelector from "@/components/PeriodSelector";
 
 const ICONS = {
   home: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
@@ -60,6 +61,11 @@ const adminMenuItems: MenuItem[] = [
     name: 'Métricas',
     icon: 'analytics',
     path: '/dashboard/admin/metrics'
+  },
+  {
+    name: 'Estadísticas',
+    icon: 'analytics',
+    path: '/dashboard/admin/statistics'
   },
   {
     name: 'Usuarios',
@@ -197,8 +203,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </motion.div>
             )}
           </AnimatePresence>
-          <div className="flex items-center">
-            {isMenuExpanded && <ModeToggle />}
+          <div className="flex items-center gap-2">
+            {isMenuExpanded && (
+              <ModeToggle />
+            )}
             <button
               onClick={() => setIsMenuExpanded(!isMenuExpanded)}
               className="p-2 rounded-lg hover:bg-secondary ml-2"
@@ -209,6 +217,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </button>
           </div>
         </div>
+
+        {/* Period Selector - Desktop only */}
+        {isMenuExpanded && (
+          <div className="hidden md:block px-4 pt-4 pb-2 border-b border-border">
+            <PeriodSelector />
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4">
@@ -391,6 +406,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <PeriodSelector />
               <ModeToggle />
             </div>
           </header>

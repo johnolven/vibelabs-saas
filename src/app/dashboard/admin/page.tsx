@@ -1,5 +1,7 @@
 'use client';
 
+import { usePageTracking } from '@/hooks/usePageTracking';
+
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -12,6 +14,8 @@ const stats = [
 ];
 
 export default function AdminDashboard() {
+  usePageTracking({ section: 'dashboard' });
+  
   return (
     <div className="space-y-6">
       <div>

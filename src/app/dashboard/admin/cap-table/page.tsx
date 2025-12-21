@@ -3,8 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { IShareholder, ICapTable } from '@/models/CapTable';
+import { usePageTracking } from '@/hooks/usePageTracking';
 
 export default function CapTableManagement() {
+  usePageTracking({ section: 'cap-table' });
+  
   const [capTable, setCapTable] = useState<Partial<ICapTable>>({
     companyName: '',
     totalShares: 0,

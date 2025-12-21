@@ -32,6 +32,11 @@ export interface ICapTable extends mongoose.Document {
   fullyDilutedShares?: number;
   outstandingShares?: number;
   reservedPool?: number;
+  period?: {
+    type: 'month' | 'quarter' | 'year';
+    value: string; // '2024-01', '2024-Q1', '2024'
+  };
+  version?: number;
 }
 
 const shareholderSchema = new mongoose.Schema({
@@ -139,6 +144,18 @@ const capTableSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     default: 0
+  },
+  period: {
+    type: {
+      type: String,
+      enum: ['month', 'quarter', 'year']
+    },
+    value: String
+  },
+  version: {
+    type: Number,
+    default: 1,
+    min: 1
   }
 }, {
   timestamps: true
