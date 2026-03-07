@@ -146,7 +146,7 @@ export default function SignUp() {
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/dashboard/settings/billing');
+      router.push('/dashboard');
     } catch (err: unknown) {
       console.error('Signup error:', err);
       setError(err instanceof Error ? err.message : t.errorSignup);
@@ -182,7 +182,7 @@ export default function SignUp() {
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/dashboard/settings/billing');
+      router.push('/dashboard');
     } catch (err: unknown) {
       console.error('Google signup error:', err);
       setError(err instanceof Error ? err.message : t.googleError);
